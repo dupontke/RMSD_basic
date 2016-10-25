@@ -23,7 +23,8 @@ config_file = sys.argv[1]
 # RESIDUE LISTS:
 
 nucleic = ['A5','A3','A','G5','G3','G','C5','C3','C','T5','T3','T','U5','U3','U']
-triphosphate = ['GTP','SAH','atp','adp','PHX']
+triphosphate = ['GTP','atp','adp','PHX']
+cofactors = ['SAH']
 other = ['MG']
 
 # ----------------------------------------
@@ -37,6 +38,9 @@ a_phos = 'name O5* O2A O1A PA O3A'
 b_phos = 'name PB O1B O2B O3B'
 g_phos = 'name PG O1G O2G O3G'
 inorg_phos = 'name P O1 O2 O3 O4'# NO HYDROGENS
+sah_base = "name N9 C8 N7 C5 C6 N6 N1 C2 N3 C4"
+sah_sugar = "name C5' C4' O4' C3' O3' C2' O2' C1'"
+sah_methionine = "name N CA CB CG SD C O OXT"
 
 # ----------------------------------------
 # FUNCTIONS: (NOT INCLUDING MAKE_SELECTIONS FUNCTION WHICH IS FOUND AT THE BOTTOM OF THIS SCRIPT)
@@ -168,7 +172,7 @@ def make_selections(analysis_universe,ref_universe,resname,resid,output_file,sel
     # ----------------------------------------
     # CREATING THE TRIPHOSPHATE ATOM SELECTIONS
     elif resname in triphosphate:
-        if resname in ['atp','adp']:
+        if resname in ['GTP','atp','adp']:
             sel_string = 'resname %s and resid %d and %s' %(resname,resid,base)
             u_temp = analysis_universe.select_atoms(sel_string)
             selection_list.append(u_temp)
@@ -193,7 +197,7 @@ def make_selections(analysis_universe,ref_universe,resname,resid,output_file,sel
             output_file.write('%02d   %s   %s\n' %(count,resname,sel_string))
             count +=1
 
-        if resname == 'atp':
+        if resname in ['GTP','atp']:
             sel_string = 'resname %s and resid %d and %s' %(resname,resid,a_phos)
             u_temp = analysis_universe.select_atoms(sel_string)
             selection_list.append(u_temp)
@@ -253,6 +257,47 @@ def make_selections(analysis_universe,ref_universe,resname,resid,output_file,sel
             count +=1
             return
 
+    # ----------------------------------------
+    # CREATING THE SAH COFACTOR ATOM SELECTIONS
+    elif resname in cofactors:
+        if resname == 'SAH':
+            sel_string = 'resname %s and resid %d and %s' %(resname,resid,sah_base)
+            u_temp = analysis_universe.select_atoms(sel_string)
+            selection_list.append(u_temp)
+            nAtoms.append(u_temp.n_atoms)
+            ref_temp = ref_universe.select_atoms(sel_string)
+            ref_pos.append(ref_temp.positions)
+            if u_temp.n_atoms != ref_temp.n_atoms:
+                ffprint('Number of atoms do not match for selections %02d, %s, %s' %(count,resname,sel_string))
+                sys.exit()
+            output_file.write('%02d   %s   %s\n' %(count,resname,sel_string))
+            count +=1
+
+            sel_string = 'resname %s and resid %d and %s' %(resname,resid,sah_sugar)
+            u_temp = analysis_universe.select_atoms(sel_string)
+            selection_list.append(u_temp)
+            nAtoms.append(u_temp.n_atoms)
+            ref_temp = ref_universe.select_atoms(sel_string)
+            ref_pos.append(ref_temp.positions)
+            if u_temp.n_atoms != ref_temp.n_atoms:
+                ffprint('Number of atoms do not match for selections %02d, %s, %s' %(count,resname,sel_string))
+                sys.exit()
+            output_file.write('%02d   %s   %s\n' %(count,resname,sel_string))
+            count +=1
+
+            sel_string = 'resname %s and resid %d and %s' %(resname,resid,sah_methionine)
+            u_temp = analysis_universe.select_atoms(sel_string)
+            selection_list.append(u_temp)
+            nAtoms.append(u_temp.n_atoms)
+            ref_temp = ref_universe.select_atoms(sel_string)
+            ref_pos.append(ref_temp.positions)
+            if u_temp.n_atoms != ref_temp.n_atoms:
+                ffprint('Number of atoms do not match for selections %02d, %s, %s' %(count,resname,sel_string))
+                sys.exit()
+            output_file.write('%02d   %s   %s\n' %(count,resname,sel_string))
+            count +=1
+            return
+    
     # ----------------------------------------
     # CREATING ANY REMAINING ATOM SELECTIONS...
     elif resname in other:
